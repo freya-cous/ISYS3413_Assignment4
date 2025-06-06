@@ -70,7 +70,22 @@ public class Person {
         } catch (Exception e) {
             return "Failed";
         }
+        int totalPoints = 0;
+        long twoYearsMillis = (long) (2 * 365 * 24 * 60 * 60 * 1000);
+        
+        for (Map.Entry<Date, Integer> entry : demeritPoints.entrySet()) {
+            Date d = entry.getKey();
+            long diff = Math.abs(offenseDate.getTime() - d.getTime());
+            if (diff <= twoYearsMillis) {
+                totalPoints += entry.getValue();
+            }
+        }
 
+        if ((age < 21 && totalPoints > 6) || (age >= 21 && totalPoints > 12)) {
+            isSuspended = true;
+        }
+
+        return "Success";
         
     }
 }
