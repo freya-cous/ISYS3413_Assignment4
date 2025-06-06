@@ -100,15 +100,15 @@ public class PersonTest {
         for (int i = 1; i <= 3; i++) {
             p.addDemeritPoints("01-0" + i + "-2024", 5);
         }
-        assertTrue(p.addDemeritPoints("01-04-2024", 5).equals("Success"));
-        assertTrue(p.isSuspended);
+        assertEquals("Success", p.addDemeritPoints("01-04-2024", 5));
+        assertTrue(p.isSuspended());
     }
 
     @Test
     public void testAddOldOffenseNoSuspension() {
         Person p = new Person("56s_d%&fAB", "John", "Doe", "Addr", "15-11-1990");
         assertEquals("Success", p.addDemeritPoints("01-01-2019", 6));
-        assertFalse(p.isSuspended);
+        assertFalse(p.isSuspended());
     }
 
     @Test
@@ -116,7 +116,7 @@ public class PersonTest {
         Person p = new Person("56s_d%&fAB", "John", "Doe", "Addr", "15-11-2008");
         p.addDemeritPoints("01-01-2024", 3);
         p.addDemeritPoints("01-02-2024", 4);
-        assertTrue(p.isSuspended);
+        assertTrue(p.isSuspended());
     }
 
     @Test

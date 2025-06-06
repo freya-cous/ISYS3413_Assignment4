@@ -1,4 +1,0 @@
-56s_d%&fAB,John,Doe,32|Highland Street|Melbourne|Victoria|Australia,15-11-2000,false
-77s_d$@gCD,Alice,Wong,10|Apple Rd|Melbourne|Victoria|Australia,01-01-1995,false
-86s_a#_bEF,Michael,Smith,12|Main Street|Melbourne|Victoria|Australia,15-11-2010,false
-57x$#_aGH,Emily,Jones,90|Lane|Melbourne|Victoria|Australia,22-07-1988,true
