@@ -14,7 +14,7 @@ public class Person {
     private boolean isSuspended = false;
 
     private static final String FILE_NAME = "test_persons.txt";
-    // testing for video
+
     public Person(String personID, String firstName, String lastName, String address, String birthdate) {
         this.personID = personID;
         this.firstName = firstName;
@@ -22,7 +22,7 @@ public class Person {
         this.address = address;
         this.birthdate = birthdate;
     }
-
+    // video test 2
     public boolean addPerson() {
         if (!isValidID(this.personID) || !isValidAddress(this.address) || !isValidDate(this.birthdate)) return false;
         try (FileWriter fw = new FileWriter(FILE_NAME, true)) {
