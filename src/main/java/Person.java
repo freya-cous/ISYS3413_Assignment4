@@ -14,7 +14,7 @@ public class Person {
     private boolean isSuspended = false;
 
     private static final String FILE_NAME = "test_persons.txt";
-
+    // testing for video
     public Person(String personID, String firstName, String lastName, String address, String birthdate) {
         this.personID = personID;
         this.firstName = firstName;
@@ -135,7 +135,7 @@ public class Person {
             return false;
         }
     }
-    
+
     private int getAge(String birthdateStr) {
         try {
             Date birth = new SimpleDateFormat("dd-MM-yyyy").parse(birthdateStr);
