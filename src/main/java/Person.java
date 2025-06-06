@@ -127,12 +127,15 @@ public class Person {
 
     private boolean isValidDate(String dateStr) {
         try {
-            new SimpleDateFormat("dd-MM-yyyy").parse(dateStr);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+            sdf.setLenient(false); // ← Important: don't allow flexible parsing
+            sdf.parse(dateStr);
             return true;
-        } catch (ParseException e) {
+        } 
+        catch (ParseException e) {
             return false;
         }
-    }
+}
 
     private int getAge(String birthdateStr) {
         try {
