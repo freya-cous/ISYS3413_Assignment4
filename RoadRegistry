@@ -39,13 +39,38 @@ public class Person {
     }
 
     public String addDemeritPoints() {
-        //TODO: This method adds demerit points for a given person in a TXT file.
-        //Condition 1: The format of the date of the offense should follow the following format: DD-MM-YYYY. Example: 15-11-1990
-        //Condition 2: The demerit points must be a whole number between 1–6
-        //Condition 3: If the person is under 21, the isSuspended variable should be set to true if the total demerit points within two years exceed 6.
-        //If the person is over 21, the isSuspended variable should be set to true if the total demerit points within two years exceed 12.
-        //Instruction: If the above conditions and any other conditions you may want to consider are met, the demerit points for a person should be inserted into the TXT file,
-        //and the addDemeritPoints function should return “Success”. Otherwise, the addDemeritPoints function should return “Failed”.
-        return "Success";
+        if (!offenseDateStr.matches("\\d{2}-\\d{2}-\\d{4}")) {
+            return "Failed";
+        }
+
+        if (points < 1 || points > 6) {
+            return "Failed";
+        } 
+
+        Date offenseDate;
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MM-yyyy");
+            sdf.setLenient(false);
+            offenseDate = sdf.parse(offenseDateStr);
+        } catch (Exception e) {
+            return "Failed";
+        }
+
+        if (demeritPoints == null) {
+            demeritPoints = new HashMap<>();
+        }
+        demeritPoints.put(offenseDate, points);
+
+        int age;
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MM-yyyy");
+            Date birth = sdf.parse(this.birthdate);
+            long ageInMillis = offenseDate.getTime() - birth.getTime();
+            age = (int) (ageInMillis / (1000L * 60 * 60 * 24 * 365));
+        } catch (Exception e) {
+            return "Failed";
+        }
+
+        
     }
 }
