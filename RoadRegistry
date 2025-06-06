@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.Date;
 
+
 public class Person {
 
     private String personID;
@@ -26,16 +27,98 @@ public class Person {
     }
 
     public boolean updatePersonalDetails() {
-        //TODO: This method allows updating a given person’s ID, firstName, lastName, address and birthday in a TXT file.
-        //Changing personal details will not affect their demerit points or the suspension status.
-        //All relevant conditions discussed for the addPerson function also need to be considered and checked in the updatePerson function.
-        //Condition 1: If a person is under 18, their address cannot be changed.
-        //Condition 2: If a person’s birthday is going to be changed, then no other personal detail (i.e, person’s ID, firstName, lastName, address) can be changed.
-        //Condition 3: If the first character/digit of a person’s ID is an even number, then their ID cannot be changed.
-        //Instruction: If the Person’s updated information meets the above conditions and any other conditions you may want to consider,
-        //the Person’s information should be updated in the TXT file with the updated information, and the updatePersonalDetails function should return true.
-        //Otherwise, the Person’s updated information should not be updated in the TXT file, and the updatePersonalDetails function should return false.
-        return true;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter current ID of the person to update: ");
+        String currentId = scanner.nextLine();
+
+        List<String> lines = new ArrayList<>();
+        boolean updated = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("persons.txt"))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                Person person = parsePerson(line);
+
+                if (person.getId().equals(currentId)) {
+                    System.out.println("Current details: " + person);
+
+                    System.out.print("Enter new ID: ");
+                    String newId = scanner.nextLine();
+                    System.out.print("Enter new First Name: ");
+                    String newFirstName = scanner.nextLine();
+                    System.out.print("Enter new Last Name: ");
+                    String newLastName = scanner.nextLine();
+                    System.out.print("Enter new Address: ");
+                    String newAddress = scanner.nextLine();
+                    System.out.print("Enter new Birthday (dd-MM-yyyy): ");
+                    String newBirthdayStr = scanner.nextLine();
+
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                    LocalDate newBirthday = LocalDate.parse(newBirthdayStr, formatter);
+                    LocalDate oldBirthday = LocalDate.parse(person.getBirthday(), formatter);
+
+                    // validation
+                    boolean birthdayChanged = !oldBirthday.equals(newBirthday);
+                    boolean idChanged = !person.getId().equals(newId);
+                    boolean addressChanged = !person.getAddress().equals(newAddress);
+
+                    int age = Period.between(oldBirthday, LocalDate.now()).getYears();
+                    char firstChar = person.getId().charAt(0);
+
+                    if (age < 18 && addressChanged) {
+                        System.out.println("Address cannot be changed for person under 18");
+                        lines.add(line);
+                        continue;
+                    }
+
+                    if (birthdayChanged && (idChanged || addressChanged || !person.getFirstName().equals(newFirstName) || !person.getLastName().equals(newLastName))) {
+                        System.out.println("If birthday is updated, no other changes can be made");
+                        lines.add(line);
+                        continue;
+                    }
+
+                    if (Character.isDigit(firstChar) && ((firstChar - '0') % 2 == 0) && idChanged) {
+                        System.out.println("Cannot change ID number that starts with an even digit");
+                        lines.add(line);
+                        continue;
+                    }
+
+                    person.setId(newId);
+                    person.setFirstName(newFirstName);
+                    person.setLastName(newLastName);
+                    person.setAddress(newAddress);
+                    person.setBirthday(newBirthday.format(formatter)); // save as String
+
+                    lines.add(personToString(person));
+                    updated = true;
+                } 
+                else {
+                    lines.add(line);
+                }
+            }
+
+        } 
+        
+        catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        if (updated) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("persons.txt"))) {
+                for (String l : lines) {
+                    writer.write(l);
+                    writer.newLine();
+                }
+                return true;
+            } 
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return false;
     }
 
     public String addDemeritPoints() {
@@ -47,5 +130,89 @@ public class Person {
         //Instruction: If the above conditions and any other conditions you may want to consider are met, the demerit points for a person should be inserted into the TXT file,
         //and the addDemeritPoints function should return “Success”. Otherwise, the addDemeritPoints function should return “Failed”.
         return "Success";
+    }
+
+    public Person(String id, String firstName, String lastName, String address, String birthday, int demeritPointsTotal, boolean isSuspended) {
+        this.personID = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = address;
+        this.birthdate = birthday;
+        this.demeritPoints = new HashMap<>();
+        this.demeritPoints.put(new Date(), demeritPointsTotal);
+        this.isSuspended = isSuspended;
+    }
+
+
+    private Person parsePerson(String line) {
+        String[] parts = line.split(",");
+        return new Person(
+            parts[0],
+            parts[1],
+            parts[2],
+            parts[3],
+            parts[4], 
+            Integer.parseInt(parts[5]),
+            Boolean.parseBoolean(parts[6])
+        );
+    }
+
+    private String personToString(Person person) {
+        return String.join(",",
+            person.getId(),
+            person.getFirstName(),
+            person.getLastName(),
+            person.getAddress(),
+            person.getBirthday(),
+            String.valueOf(person.getDemeritPoints()),
+            String.valueOf(person.isSuspended()));
+    }
+
+    public String getId() { 
+        return personID; 
+    }
+    
+    public void setId(String id) {
+        this.personID = id; 
+    }
+
+    public String getFirstName() { 
+        return firstName; 
+    }
+    
+    public void setFirstName(String firstName) { 
+        this.firstName = firstName; 
+    }
+
+    public String getLastName() { 
+        return lastName; 
+    }
+    
+    public void setLastName(String lastName) { 
+        this.lastName = lastName; 
+    }
+
+    public String getAddress() { 
+        return address; 
+    }
+    
+    public void setAddress(String address) { 
+        this.address = address; 
+    }
+
+    public String getBirthday() { 
+        return birthdate; 
+    }
+    
+    public void setBirthday(String birthdate) { 
+        this.birthdate = birthdate; 
+    }
+
+    public boolean isSuspended() { 
+        return isSuspended; 
+    }
+    
+    public int getDemeritPoints() {
+        return demeritPoints.values().stream().mapToInt(Integer::intValue).sum();
     }
 }
