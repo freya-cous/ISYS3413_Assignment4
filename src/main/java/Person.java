@@ -131,12 +131,11 @@ public class Person {
             sdf.setLenient(false); // ← Important: don't allow flexible parsing
             sdf.parse(dateStr);
             return true;
-        } 
-        catch (ParseException e) {
+        } catch (ParseException e) {
             return false;
         }
-}
-
+    }
+    
     private int getAge(String birthdateStr) {
         try {
             Date birth = new SimpleDateFormat("dd-MM-yyyy").parse(birthdateStr);
