@@ -71,7 +71,7 @@ public class Person {
     }
 
     public boolean updatePersonalDetails(String newID, String newFirstName, String newLastName, String newAddress, String newBirthdate) {
-        File file = new File("persons.txt");
+        File file = new File("test_persons.txt");
         if (!file.exists()) return false;
 
         try {
