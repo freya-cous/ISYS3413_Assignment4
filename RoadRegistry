@@ -13,10 +13,17 @@ public class Person {
     private boolean isSuspended;
 
     public boolean addPerson() {
-        //Test
         //TODO: This method adds information about a person to a TXT file.
+
         //Condition 1: PersonID should be exactly 10 characters long;
+        if (personID.length() != 10) return false;
+
         //The first two characters should be numbers between 2 and 9, there should be at least two special characters between characters 3 and 8,
+        if (!Character.isDigit(personID.charAt(0)) || !Character.isDigit(personID.charAt(1))) return false;
+        if (personID.charAt(0) < '2' || personID.charAt(0) > '9') return false;
+        if (personID.charAt(1) < '2' || personID.charAt(1) > '9') return false;
+        int SpecialCharacterCounter = 0;
+        
         //and the last two characters should be upper case letters (A – Z). Example: “56s_d&sfAB”
         //Condition 2: The address of the Person should follow the following format: Street Number|Street|City|State|Country.
         //The State should be only Victoria. Example: 32|Highland Street|Melbourne|Victoria|Australia.
