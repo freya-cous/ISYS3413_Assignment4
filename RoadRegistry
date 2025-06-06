@@ -23,11 +23,31 @@ public class Person {
         if (personID.charAt(0) < '2' || personID.charAt(0) > '9') return false;
         if (personID.charAt(1) < '2' || personID.charAt(1) > '9') return false;
         int SpecialCharacterCounter = 0;
+        for (int i = 2; i <= 7; i++) {
+            char a = personID.charAt(i);
+            if (!Character.isLetterOrDigit(a)) SpecialCharacterCounter++;
+        }
+        if (SpecialCharacterCounter < 2) return false;
         
         //and the last two characters should be upper case letters (A – Z). Example: “56s_d&sfAB”
+        if (!Character.isUpperCase(personID.charAt(8)) || (!Character.isUpperCase(personID.charAt(9)))) return false;
+
         //Condition 2: The address of the Person should follow the following format: Street Number|Street|City|State|Country.
         //The State should be only Victoria. Example: 32|Highland Street|Melbourne|Victoria|Australia.
+        String[] CheckAddress = address.split("\\|");
+        if (CheckAddress.length != 5 || !CheckAddress[3].equalsIgnoreCase("Victoria")) {
+            return false;
+        }
+
         //Condition 3: The format of the birth date of the person should follow the following format: DD-MM-YYYY. Example: 15-11-1990
+        try {
+            java.text.SimpleDateFormat BirthdateChecker = new java.text.SimpleDateFormat("dd-MM-yyyy");
+            BirthdateChecker.setLenient(false);
+            BirthdateChecker.parse(birthdate);
+        } catch (ParseException e) {
+            return false;
+        }
+
         //Instruction: If the Person’s information meets the above conditions and any other conditions you may want to consider,
         //the information should be inserted into a TXT file, and the addPerson function should return true.
         //Otherwise, the information should not be inserted into the TXT file, and the addPerson function should return false.
