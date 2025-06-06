@@ -1,6 +1,10 @@
 import java.util.HashMap;
 import java.util.Date;
-
+import java.io.*;
+import java.nio.file.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class Person {
 
@@ -11,6 +15,17 @@ public class Person {
     private String birthdate;
     private HashMap<Date, Integer> demeritPoints; // A variable that holds the demerit points with the offense day
     private boolean isSuspended;
+
+    public Person(String id, String firstName, String lastName, String address, String birthday, int demeritPointsTotal, boolean isSuspended) {
+        this.personID = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = address;
+        this.birthdate = birthday;
+        this.demeritPoints = new HashMap<>();
+        this.demeritPoints.put(new Date(), demeritPointsTotal);
+        this.isSuspended = isSuspended;
+    }
 
     public boolean addPerson() {
         //TODO: This method adds information about a person to a TXT file.
@@ -48,105 +63,80 @@ public class Person {
             return false;
         }
 
+        
         //Instruction: If the Person’s information meets the above conditions and any other conditions you may want to consider,
         //the information should be inserted into a TXT file, and the addPerson function should return true.
         //Otherwise, the information should not be inserted into the TXT file, and the addPerson function should return false.
         return true;
     }
 
-    public boolean updatePersonalDetails() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter current ID of the person to update: ");
-        String currentId = scanner.nextLine();
+    public boolean updatePersonalDetails(String newID, String newFirstName, String newLastName, String newAddress, String newBirthdate) {
+        File file = new File("persons.txt");
+        if (!file.exists()) return false;
 
-        List<String> lines = new ArrayList<>();
-        boolean updated = false;
+        try {
+            List<String> lines = Files.readAllLines(file.toPath());
+            List<String> updatedLines = new ArrayList<>();
+            boolean updated = false;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("persons.txt"))) {
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                Person person = parsePerson(line);
-
-                if (person.getId().equals(currentId)) {
-                    System.out.println("Current details: " + person);
-
-                    System.out.print("Enter new ID: ");
-                    String newId = scanner.nextLine();
-                    System.out.print("Enter new First Name: ");
-                    String newFirstName = scanner.nextLine();
-                    System.out.print("Enter new Last Name: ");
-                    String newLastName = scanner.nextLine();
-                    System.out.print("Enter new Address: ");
-                    String newAddress = scanner.nextLine();
-                    System.out.print("Enter new Birthday (dd-MM-yyyy): ");
-                    String newBirthdayStr = scanner.nextLine();
-
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                    LocalDate newBirthday = LocalDate.parse(newBirthdayStr, formatter);
-                    LocalDate oldBirthday = LocalDate.parse(person.getBirthday(), formatter);
-
-                    // validation
-                    boolean birthdayChanged = !oldBirthday.equals(newBirthday);
-                    boolean idChanged = !person.getId().equals(newId);
-                    boolean addressChanged = !person.getAddress().equals(newAddress);
-
-                    int age = Period.between(oldBirthday, LocalDate.now()).getYears();
-                    char firstChar = person.getId().charAt(0);
-
-                    if (age < 18 && addressChanged) {
-                        System.out.println("Address cannot be changed for person under 18");
-                        lines.add(line);
-                        continue;
-                    }
-
-                    if (birthdayChanged && (idChanged || addressChanged || !person.getFirstName().equals(newFirstName) || !person.getLastName().equals(newLastName))) {
-                        System.out.println("If birthday is updated, no other changes can be made");
-                        lines.add(line);
-                        continue;
-                    }
-
-                    if (Character.isDigit(firstChar) && ((firstChar - '0') % 2 == 0) && idChanged) {
-                        System.out.println("Cannot change ID number that starts with an even digit");
-                        lines.add(line);
-                        continue;
-                    }
-
-                    person.setId(newId);
-                    person.setFirstName(newFirstName);
-                    person.setLastName(newLastName);
-                    person.setAddress(newAddress);
-                    person.setBirthday(newBirthday.format(formatter)); // save as String
-
-                    lines.add(personToString(person));
-                    updated = true;
-                } 
-                else {
-                    lines.add(line);
+            for (String line : lines) {
+                String[] parts = line.split(",");
+                if (parts.length < 6) {
+                    updatedLines.add(line);
+                    continue;
                 }
+
+                String currentID = parts[0];
+                if (!currentID.equals(this.personID)) {
+                    updatedLines.add(line);
+                    continue;
+                }
+
+                Person oldPerson = new Person(parts[0], parts[1], parts[2], parts[3], parts[4]);
+                boolean isChangingDOB = !oldPerson.birthdate.equals(newBirthdate);
+                boolean isUnder18 = getAge(newBirthdate) < 18;
+                boolean isEvenStart = Character.getNumericValue(oldPerson.personID.charAt(0)) % 2 == 0;
+
+                // Rule: Cannot change other details if DOB is being changed
+                if (isChangingDOB && 
+                (!oldPerson.firstName.equals(newFirstName) ||
+                    !oldPerson.lastName.equals(newLastName) ||
+                    !oldPerson.address.equals(newAddress) ||
+                    !oldPerson.personID.equals(newID))) {
+                    return false;
+                }
+
+                // Rule: Cannot change address if person is under 18
+                if (!isChangingDOB && isUnder18 && !oldPerson.address.equals(newAddress)) {
+                    return false;
+                }
+
+                // Rule: Cannot change ID if first digit is even
+                if (!isChangingDOB && isEvenStart && !oldPerson.personID.equals(newID)) {
+                    return false;
+                }
+
+                // Validate new values
+                Person updatedPerson = new Person(newID, newFirstName, newLastName, newAddress, newBirthdate);
+                if (!updatedPerson.isValidID(newID) || !updatedPerson.isValidAddress(newAddress) || !updatedPerson.isValidDate(newBirthdate)) {
+                    return false;
+                }
+
+                updatedLines.add(updatedPerson.toString());
+                updated = true;
             }
 
+            if (updated) {
+                Files.write(file.toPath(), updatedLines);
+            }
+
+            return updated;
+            
         } 
-        
         catch (IOException e) {
             e.printStackTrace();
             return false;
         }
-
-        if (updated) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("persons.txt"))) {
-                for (String l : lines) {
-                    writer.write(l);
-                    writer.newLine();
-                }
-                return true;
-            } 
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return false;
     }
 
     public String addDemeritPoints() {
@@ -200,16 +190,7 @@ public class Person {
         
     }
 
-    public Person(String id, String firstName, String lastName, String address, String birthday, int demeritPointsTotal, boolean isSuspended) {
-        this.personID = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.address = address;
-        this.birthdate = birthday;
-        this.demeritPoints = new HashMap<>();
-        this.demeritPoints.put(new Date(), demeritPointsTotal);
-        this.isSuspended = isSuspended;
-    }
+    
 
 
     private Person parsePerson(String line) {
